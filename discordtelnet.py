@@ -1,4 +1,4 @@
-import telnetlib, threading, socket ,queue
+import telnetlib, threading, socket ,queue, os,sys
 
 
 class socketserver(threading.Thread):
@@ -23,6 +23,8 @@ class socketserver(threading.Thread):
                 data = b""
             if data:
                 print(data)
+                if data == b"(kill)\n":
+                    break
             try:
                 val = self.inqueue.get(block=False)
                 conn.sendall(val.encode())
@@ -33,22 +35,33 @@ class socketserver(threading.Thread):
 # Discord.py < runs discord.py
 # Telnet < accepts input
 # socket server < runs a socket that interfaces discord.py and telnet
-print("Starting socket server in a new thread")
-q = queue.Queue()
-s = socketserver(q)
-s.start()
-print("done")
-print("adding default messages")
-q.put("discord.py telnet interface\n")
-q.put("i hope this works\n")
-q.put("If the queue sending messages works, you should see these messages\n")
-print("done")
-print("telnet connect")
-i = telnetlib.Telnet("localhost",50008)
-print("done")
-print("\n")
-try:
-    i.mt_interact()
-except KeyboardInterrupt:
-    pass
-i.close()
+def telnetThread(port):
+    print("telnet connect")
+    i = telnetlib.Telnet("localhost",50008)
+    print("done")
+    print("\n")
+    try:
+        i.mt_interact()
+    except KeyboardInterrupt:
+        pass
+    i.close()
+
+discordkey = os.environ.get("dkey", None)
+if discordkey is None:
+    print("Set the environ dkey to your discord api key for discord.py")
+    sys.exit(1)
+channelid = os.environ.get("channelid",None)
+if channelid is None:
+    print("Set the environ channelid to the channel id of the discord channel you want to talk in")
+    sys.exit(1)
+
+# do discord.py stuff
+
+
+iq = queue.Queue()
+oq = queue.Queue()
+server = socketserver(iq,oq)
+server.start()
+thr = threading.Thread(target=telnetThread,args=(server.PORT,),daemon=True)
+thr.start()
+server.join()
