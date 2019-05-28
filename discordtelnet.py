@@ -15,6 +15,8 @@ class socketserver(threading.Thread):
     def run(self):
         self.soc.listen(1)
         conn, addr = self.soc.accept()
+        if addr[0] != "127.0.0.1":
+            return
         conn.setblocking(False)
         while True:
             try:
