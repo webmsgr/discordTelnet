@@ -24,7 +24,7 @@ class socketserver(threading.Thread):
             except BlockingIOError:
                 data = b""
             if data:
-                print(data)
+                self.outqueue.put(data,False)
                 if data == b"(kill)\n":
                     break
             try:
@@ -60,18 +60,49 @@ if channelid is None:
 # do discord.py stuff
 
 def getincoming():
-    mes = []
-    while True:
-        try:
-            mes.append(oq.get(False))
-        except queue.Empty:
-            break
+    try:
+        mes = [oq.get(False)]
+    except queue.Empty:
+        return []
     return mes
+
+import discord
+import asyncio
+
+class MyClient(discord.Client):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # create the background task and run it in the background
+        self.bg_task = self.loop.create_task(self.my_background_task())
+
+    async def on_ready(self):
+        print('Logged in as')
+        print(self.user.name)
+        print(self.user.id)
+        print('------')
+        thr.start()
+    async def on_message(self,message):
+        if message.author != message.guild.get_member(self.user.id):
+            iq.put("{}:{}\n".format(message.author.display_name,message.content))
+    async def my_background_task(self):
+        await self.wait_until_ready()
+        channel = self.get_channel(int(channelid))
+        print("Chatting in {}".format(channel.name))
+        while not self.is_closed():
+            newmes = getincoming()
+            for mes in newmes:
+                await channel.send(mes.decode())
+            await asyncio.sleep(1) # task runs every 60 seconds
+
+
 
 iq = queue.Queue()
 oq = queue.Queue()
 server = socketserver(iq,oq)
 server.start()
 thr = threading.Thread(target=telnetThread,args=(server.PORT,),daemon=True)
-thr.start()
-server.join()
+
+
+client = MyClient()
+client.run(discordkey)
