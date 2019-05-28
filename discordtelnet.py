@@ -3,9 +3,10 @@ import telnetlib, threading, socket ,queue
 
 class socketserver(threading.Thread):
     """Socket server, starts a server on a fixed port, writes all recived messages to stdin and sends new queue items back"""
-    def __init__(self, queue, args=(), kwargs=None):
+    def __init__(self, inqueue, outqueue, args=(), kwargs=None):
         threading.Thread.__init__(self, args=(), kwargs=None)
-        self.queue = queue
+        self.inqueue = inqueue
+        self.outqueue = outqueue
         self.daemon = True
         self.HOST = ''
         self.PORT = 50008
@@ -23,7 +24,7 @@ class socketserver(threading.Thread):
             if data:
                 print(data)
             try:
-                val = self.queue.get(block=False)
+                val = self.inqueue.get(block=False)
                 conn.sendall(val.encode())
             except queue.Empty:
                 pass # no data avalable
