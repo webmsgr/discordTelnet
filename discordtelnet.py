@@ -24,9 +24,9 @@ class socketserver(threading.Thread):
             except BlockingIOError:
                 data = b""
             if data:
-                self.outqueue.put(data,False)
-                if data == b"(kill)\n":
+                if data == b"/kill\n":
                     break
+                self.outqueue.put(data,False)
             try:
                 val = self.inqueue.get(block=False)
                 conn.sendall(val.encode())
@@ -69,7 +69,18 @@ def getincoming():
 
 import discord
 import asyncio
-
+import re
+def replaceids(text,func):
+    """calls func with the member id and replaces all <@id>s with it"""
+    matches = re.findall("<@([0-9]+)>",text)
+    for item in matches:
+        text = text.replace("<@{}>".format(item),"@"+func(item))
+    return text
+def replaceroleids(text,func):
+    matches = re.findall("<@&([0-9]+)>",text)
+    for item in matches:
+        text = text.replace("<@&{}>".format(item),"@"+func(item))
+    return text
 class MyClient(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -85,7 +96,10 @@ class MyClient(discord.Client):
         thr.start()
     async def on_message(self,message):
         if message.author != message.guild.get_member(self.user.id):
-            iq.put("{}:{}\n".format(message.author.display_name,message.content))
+            mes = message.content
+            mes = replaceids(mes,lambda x: message.guild.get_member(int(x)).display_name)
+            mes = replaceroleids(mes,lambda x: message.guild.get_role(int(x)).name)
+            iq.put("{}:{}\n".format(message.author.display_name,mes))
     async def my_background_task(self):
         await self.wait_until_ready()
         channel = self.get_channel(int(channelid))
@@ -93,7 +107,26 @@ class MyClient(discord.Client):
         while not self.is_closed():
             newmes = getincoming()
             for mes in newmes:
-                await channel.send(mes.decode())
+                mes = mes.decode()
+                if mes.startswith("/"):
+                    mes = mes.split("/")[1]
+                    if mes.startswith("channel"):
+                        newchannelid = mes.split(" ")[1]
+                        print("Switching to channel...")
+                        channel = self.get_channel(int(newchannelid))
+                        print("Chatting in {}".format(channel.name))
+                    elif mes.startswith("list-channel"):
+                        serverid = mes.split(" ")[1]
+                        dserver = self.get_guild(int(serverid))
+                        print("Channels in server {}".format(dserver.name))
+                        #print(dserver.channels)
+                        for chanel in dserver.channels:
+                            if isinstance(chanel,discord.TextChannel):
+                                print("{}:{}".format(chanel.name,chanel.id))
+                    else:
+                        print("Invalid Command!")
+                else:
+                    await channel.send(mes)
             await asyncio.sleep(1) # task runs every 60 seconds
 
 
