@@ -9,7 +9,7 @@ class socketserver(threading.Thread):
         self.outqueue = outqueue
         self.daemon = True
         self.HOST = ''
-        self.PORT = 50008
+        self.PORT = 50009
         self.soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.soc.bind((self.HOST,self.PORT))
     def run(self):
@@ -39,7 +39,7 @@ class socketserver(threading.Thread):
 # socket server < runs a socket that interfaces discord.py and telnet
 def telnetThread(port):
     print("telnet connect")
-    i = telnetlib.Telnet("localhost",50008)
+    i = telnetlib.Telnet("localhost",port)
     print("done")
     print("\n")
     try:
@@ -103,6 +103,16 @@ server = socketserver(iq,oq)
 server.start()
 thr = threading.Thread(target=telnetThread,args=(server.PORT,),daemon=True)
 
-
+def autologout(server,dclient):
+    server.join()
+    print("Logging Out")
+    loop = dclient.loop
+    dclient.logouttask = loop.create_task(dclient.logout())
+    i = False
+    while not i:
+        i = dclient.is_closed()
 client = MyClient()
+autolog = threading.Thread(target=autologout,args=(server,client),daemon=False)
+autolog.start()
 client.run(discordkey)
+autolog.join()
