@@ -37,6 +37,7 @@ class socketserver(threading.Thread):
 # Discord.py < runs discord.py
 # Telnet < accepts input
 # socket server < runs a socket that interfaces discord.py and telnet
+# autologout < when the discord bot is blocking, this detects the server shutting down and logs out the bot
 def telnetThread(port):
     print("telnet connect")
     i = telnetlib.Telnet("localhost",port)
