@@ -1,4 +1,4 @@
-import telnetlib, threading, socket ,queue, os,sys
+import telnetlib, threading, socket ,queue, os, sys, random
 
 
 class socketserver(threading.Thread):
@@ -9,7 +9,7 @@ class socketserver(threading.Thread):
         self.outqueue = outqueue
         self.daemon = True
         self.HOST = ''
-        self.PORT = 50009
+        self.PORT = random.randint(50000,50100)
         self.soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.soc.bind((self.HOST,self.PORT))
     def run(self):
