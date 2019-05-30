@@ -115,6 +115,8 @@ class MyClient(discord.Client):
                         print("Guilds/Servers:")
                         for guild in self.guilds:
                             print("{}:{}".format(guild.name,guild.id))
+                    elif mes.startswith("isbot"):
+                        print("You are{} a bot".format({False:" not",True:""}[self.user.bot]))
                     else:
                         print("Invalid Command!")
                 else:

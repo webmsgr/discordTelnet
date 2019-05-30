@@ -16,5 +16,6 @@ My attempt to give discord.py a telnet interface. It includes threading too!
 - [x] /list-channels (serverid) to list channels and ids in a server
 - [x] /list-servers or /list-guilds to list all servers you are in
 - [ ] /dm (user id) switch to dming a user
+- [x] /isbot Are you a bot? or not?
 - [ ] /menc (username) gets a string that can be used to notify that player
 
