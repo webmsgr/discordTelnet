@@ -111,6 +111,10 @@ class MyClient(discord.Client):
                         for chanel in dserver.channels:
                             if isinstance(chanel,discord.TextChannel):
                                 print("{}:{}".format(chanel.name,chanel.id))
+                    elif mes.startswith("list-servers") or mes.startswith("list-guilds"):
+                        print("Guilds/Servers:")
+                        for guild in self.guilds:
+                            print("{}:{}".format(guild.name,guild.id))
                     else:
                         print("Invalid Command!")
                 else:
