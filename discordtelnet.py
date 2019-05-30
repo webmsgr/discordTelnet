@@ -61,10 +61,12 @@ if channelid is None:
 # do discord.py stuff
 
 def getincoming():
-    try:
-        mes = [oq.get(False)]
-    except queue.Empty:
-        return []
+    mes = []
+    while True:
+        try:
+            mes.append(oq.get(False))
+        except queue.Empty:
+            break
     return mes
 
 import discord
