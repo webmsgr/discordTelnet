@@ -1,5 +1,5 @@
 # discordTelnet
-My attempt to give discord.py a telnet interface. Very Bad, but it works
+My attempt to give discord.py a telnet interface. It includes threading too!
 
 # Features
 - [x] Exiting using /kill
