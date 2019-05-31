@@ -49,6 +49,7 @@ def telnetThread(port):
         pass
     i.close()
 
+
 discordkey = os.environ.get("dkey", None)
 if discordkey is None:
     print("Set the environ dkey to your discord api key for discord.py")
@@ -59,7 +60,8 @@ if channelid is None:
     sys.exit(1)
 
 # do discord.py stuff
-
+def getmemberfromid(client,id):
+    return discord.utils.get(client.get_all_members(),id=id)
 def getincoming():
     mes = []
     while True:
@@ -76,22 +78,32 @@ class MyClient(discord.Client):
         super().__init__(*args, **kwargs)
 
         # create the background task and run it in the background
-        self.bg_task = self.loop.create_task(self.my_background_task())
+        self.bg_task = self.loop.create_task(self.autorestart())
 
     async def on_ready(self):
-        print('Logged in as')
-        print(self.user.name)
-        print(self.user.id)
-        print('------')
+        self.print('Logged in as')
+        self.print(self.user.name)
+        self.print(self.user.id)
+        self.print('------')
         thr.start()
     async def on_message(self,message):
         if message.author != message.guild.get_member(self.user.id):
             mes = message.clean_content
-            iq.put("{}:{}\n".format(message.author.display_name,mes))
-    async def my_background_task(self):
+            self.print("{}:{}".format(message.author.display_name,mes))
+    def print(self,mes):
+        iq.put(str(mes)+"\n")
+    async def autorestart(self):
+        while not self.is_closed():
+            try:
+                await self.message_sender()
+            except:
+                print("Error in message_sender, restarting...")
+
+    async def message_sender(self):
+        global channelid
         await self.wait_until_ready()
         channel = self.get_channel(int(channelid))
-        print("Chatting in {}".format(channel.name))
+        self.print("Chatting in {}".format(channel.name))
         while not self.is_closed():
             newmes = getincoming()
             for mes in newmes:
@@ -100,25 +112,52 @@ class MyClient(discord.Client):
                     mes = mes.split("/")[1]
                     if mes.startswith("channel"):
                         newchannelid = mes.split(" ")[1]
-                        print("Switching to channel...")
+                        self.print("Switching to channel...")
                         channel = self.get_channel(int(newchannelid))
-                        print("Chatting in {}".format(channel.name))
+                        channelid = newchannelid
+                        self.print("Chatting in {}".format(channel.name))
                     elif mes.startswith("list-channel"):
                         serverid = mes.split(" ")[1]
                         dserver = self.get_guild(int(serverid))
-                        print("Channels in server {}".format(dserver.name))
+                        self.print("Channels in server {}".format(dserver.name))
                         #print(dserver.channels)
                         for chanel in dserver.channels:
                             if isinstance(chanel,discord.TextChannel):
-                                print("{}:{}".format(chanel.name,chanel.id))
+                                self.print("{}:{}".format(chanel.name,chanel.id))
                     elif mes.startswith("list-servers") or mes.startswith("list-guilds"):
-                        print("Guilds/Servers:")
+                        self.print("Guilds/Servers:")
                         for guild in self.guilds:
-                            print("{}:{}".format(guild.name,guild.id))
+                            self.print("{}:{}".format(guild.name,guild.id))
                     elif mes.startswith("isbot"):
-                        print("You are{} a bot".format({False:" not",True:""}[self.user.bot]))
+                        self.print("You are{} a bot".format({False:" not",True:""}[self.user.bot]))
+                    elif mes.startswith("userinfo"):
+                        id = mes.split(" ")[1]
+                        user = getmemberfromid(self,int(id))
+                        if user is None:
+                            self.print("No user found")
+                        else:
+                            self.print("{}#{}\nID:{}\nBot:{}\nCreated on:{}".format(user.name,user.discriminator,user.id,user.bot,user.created_at))
+                            self.print("String to mention:{}".format(user.mention))
+                            try:
+                                if not user.bot:
+                                    profile = await user.profile()
+                                else:
+                                    profile = None
+                                    iq.put("User is bot so ")
+                            except (discord.HTTPException,discord.Forbidden):
+                                profile = None
+                            if profile is None:
+                                self.print("Unable to grab profile")
+                            else:
+                                self.print("Has nitro:{}".format(profile.nitro))
+                                if profile.nitro:
+                                    self.print("Nitro since:{}".format(profile.premium_since))
+                                self.print("Hypesquad:{}".format(profile.hypesquad))
+                                if profile.hypesquad:
+                                    self.print("Houses:{}".format(profile.hypesquad_houses))
+
                     else:
-                        print("Invalid Command!")
+                        self.print("Invalid Command!")
                 else:
                     await channel.send(mes)
             await asyncio.sleep(1) # task runs every 60 seconds
