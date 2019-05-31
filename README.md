@@ -1,6 +1,7 @@
 # discordTelnet
 My attempt to give discord.py a telnet interface. It includes threading too!
-
+# Installing
+Use git clone or download the latest release. Install the requirements, and run the .py file
 # Features
 - [x] Exiting using /kill
 - [x] Switching Channels in server
