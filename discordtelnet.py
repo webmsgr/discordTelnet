@@ -141,23 +141,23 @@ class MyClient(discord.Client):
                     elif mes.startswith("list-channel"):
                         serverid = mes.split(" ")[1]
                         dserver = self.get_guild(int(serverid))
-                        self.print("Channels in server {}".format(dserver.name))
+                        self.print("Channels in server {}".format(
+                            dserver.name))
                         # print(dserver.channels)
                         for chanel in dserver.channels:
                             if isinstance(chanel, discord.TextChannel):
-                                self.print("{}:{}".format(chanel.name, chanel.id))
+                                self.print("{}:{}".format(
+                                    chanel.name, chanel.id))
                     elif mes.startswith("list-servers") or mes.startswith(
-                        "list-guilds"
-                    ):
+                            "list-guilds"):
                         self.print("Guilds/Servers:")
                         for guild in self.guilds:
                             self.print("{}:{}".format(guild.name, guild.id))
                     elif mes.startswith("isbot"):
-                        self.print(
-                            "You are{} a bot".format(
-                                {False: " not", True: ""}[self.user.bot]
-                            )
-                        )
+                        self.print("You are{} a bot".format({
+                            False: " not",
+                            True: ""
+                        }[self.user.bot]))
                     elif mes.startswith("userinfo"):
                         id = mes.split(" ")[1]
                         user = getmemberfromid(self, int(id))
@@ -171,9 +171,9 @@ class MyClient(discord.Client):
                                     user.id,
                                     user.bot,
                                     user.created_at,
-                                )
-                            )
-                            self.print("String to mention:{}".format(user.mention))
+                                ))
+                            self.print("String to mention:{}".format(
+                                user.mention))
                             try:
                                 if not user.bot:
                                     profile = await user.profile()
@@ -185,16 +185,16 @@ class MyClient(discord.Client):
                             if profile is None:
                                 self.print("Unable to grab profile")
                             else:
-                                self.print("Has nitro:{}".format(profile.nitro))
+                                self.print("Has nitro:{}".format(
+                                    profile.nitro))
                                 if profile.nitro:
-                                    self.print(
-                                        "Nitro since:{}".format(profile.premium_since)
-                                    )
-                                self.print("Hypesquad:{}".format(profile.hypesquad))
+                                    self.print("Nitro since:{}".format(
+                                        profile.premium_since))
+                                self.print("Hypesquad:{}".format(
+                                    profile.hypesquad))
                                 if profile.hypesquad:
-                                    self.print(
-                                        "Houses:{}".format(profile.hypesquad_houses)
-                                    )
+                                    self.print("Houses:{}".format(
+                                        profile.hypesquad_houses))
 
                     else:
                         self.print("Invalid Command!")
@@ -207,7 +207,7 @@ iq = queue.Queue()
 oq = queue.Queue()
 server = socketserver(iq, oq)
 server.start()
-thr = threading.Thread(target=telnetThread, args=(server.PORT,), daemon=True)
+thr = threading.Thread(target=telnetThread, args=(server.PORT, ), daemon=True)
 
 
 def autologout(server, dclient):
@@ -221,7 +221,9 @@ def autologout(server, dclient):
 
 
 client = MyClient()
-autolog = threading.Thread(target=autologout, args=(server, client), daemon=False)
+autolog = threading.Thread(target=autologout,
+                           args=(server, client),
+                           daemon=False)
 autolog.start()
 client.run(discordkey)
 autolog.join()
