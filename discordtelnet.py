@@ -1,6 +1,5 @@
 import telnetlib, threading, socket ,queue, os, sys, random
 
-
 class socketserver(threading.Thread):
     """Socket server, starts a server on a fixed port, writes all recived messages to stdin and sends new queue items back"""
     def __init__(self, inqueue, outqueue, args=(), kwargs=None):
