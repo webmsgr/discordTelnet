@@ -1,12 +1,13 @@
-import discord
 import asyncio
+import os
+import queue
+import random
+import socket
+import sys
 import telnetlib
 import threading
-import socket
-import queue
-import os
-import sys
-import random
+
+import discord
 
 
 class socketserver(threading.Thread):
